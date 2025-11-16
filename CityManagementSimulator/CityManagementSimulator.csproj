@@ -32,6 +32,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <Win32Resource>
+    </Win32Resource>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="DocumentFormat.OpenXml, Version=3.3.0.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
       <HintPath>..\packages\DocumentFormat.OpenXml.3.3.0\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
@@ -144,6 +148,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChartForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Data\DatabaseHelper.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -151,11 +158,29 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="MainForm.BuildingManagement.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Citizens.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainForm.Dialogs.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Interaction.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Rendering.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Simulation.cs">
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Models\Building.cs" />
     <Compile Include="Models\CityState.cs" />
@@ -164,11 +189,13 @@
     </Compile>
     <Compile Include="Models\NativeMethods.cs" />
     <Compile Include="Models\Person.cs" />
+    <Compile Include="Models\Road.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\BuildingRepository.cs" />
     <Compile Include="Repositories\CityRepository.cs" />
     <Compile Include="Repositories\PersonRepository.cs" />
+    <Compile Include="Repositories\RoadRepository.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -195,6 +222,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\login_city.png" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Assets\commerce.png" />
+    <Content Include="Assets\factory.png" />
+    <Content Include="Assets\house.png" />
+    <Content Include="Assets\park.png" />
+    <Content Include="Assets\road.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

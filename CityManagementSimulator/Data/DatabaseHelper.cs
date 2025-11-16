@@ -14,7 +14,8 @@ namespace CityManagementSimulator.Data
 
         public DatabaseHelper()
         {
-            _conn = ConfigurationManager.ConnectionStrings["CityDatabase"].ConnectionString;
+            _conn = ConfigurationManager.ConnectionStrings["CityDatabase"]?.ConnectionString
+                    ?? throw new InvalidOperationException("Connection string 'CityDB' not found.");
             EnsureDatabaseAndSchema();
         }
 
@@ -69,7 +70,6 @@ namespace CityManagementSimulator.Data
                 if (string.IsNullOrWhiteSpace(dbName))
                     throw new InvalidOperationException("Initial Catalog is missing from the CityDB connection string.");
 
-                // Connect to master to ensure the database exists
                 var masterCs = new SqlConnectionStringBuilder(appCs.ConnectionString) { InitialCatalog = "master" };
 
                 using (var conn = new SqlConnection(masterCs.ConnectionString))
@@ -87,7 +87,6 @@ END";
                     cmd.ExecuteNonQuery();
                 }
 
-                // Now ensure schema in the target DB
                 using (var conn = new SqlConnection(_conn))
                 using (var cmd = conn.CreateCommand())
                 {
@@ -167,12 +166,25 @@ BEGIN
 END";
                     cmd.ExecuteNonQuery();
 
-                    // Seed a single CityState row if empty (MainForm expects a row)
+                    // Seed CityState
                     cmd.CommandText = @"
 IF NOT EXISTS (SELECT 1 FROM dbo.CityState)
 BEGIN
     INSERT INTO dbo.CityState (CityName, Budget, EnergyPool, WaterPool, DayCounter)
     VALUES (N'MaVille', 10000, 1000, 1000, 0);
+END";
+                    cmd.ExecuteNonQuery();
+
+                    // Road (simple)
+                    cmd.CommandText = @"
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Road' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE dbo.Road
+    (
+        Id    INT IDENTITY(1,1) PRIMARY KEY,
+        CellX INT NOT NULL,
+        CellY INT NOT NULL
+    );
 END";
                     cmd.ExecuteNonQuery();
                 }
