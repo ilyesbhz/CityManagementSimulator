@@ -124,13 +124,9 @@ namespace CityManagementSimulator
 
         private void MapPanel_MouseWheel(object sender, MouseEventArgs e)
         {
-            int old = tileSize;
-            int dir = e.Delta > 0 ? 1 : -1;
-            int desired = tileSize + dir * zoomStep;
-            desired = Math.Max(minTileSize, Math.Min(maxTileSize, desired));
-            if (desired == tileSize) return;
-            tileSize = desired;
-            ApplyTileSizeChange(old);
+            // Zoom disabled: ignoring mouse wheel input.
+            // (Line kept to avoid removing event subscription; safe no-op.)
+            return;
         }
 
         private void ApplyTileSizeChange(int oldTileSize)
@@ -152,7 +148,7 @@ namespace CityManagementSimulator
             {
                 int x = r.CellX * tileSize;
                 int y = r.CellY * tileSize;
-                var dest = new Rectangle(x, y, tileSize, tileSize); // full tile
+                var dest = new Rectangle(x, y, tileSize, tileSize);
 
                 using (var asphalt = new SolidBrush(Color.FromArgb(64, 64, 64)))
                 using (var outline = new Pen(Color.FromArgb(90, 90, 90), 1))
