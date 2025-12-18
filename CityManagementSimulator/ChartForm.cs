@@ -12,6 +12,7 @@ namespace CityManagementSimulator
         private readonly CityRepository _cityRepo = new CityRepository();
         private Chart chart;
         private Button btnRefresh;
+        private Button btnHistory;
 
         public ChartForm()
         {
@@ -34,11 +35,32 @@ namespace CityManagementSimulator
             chart.Series.Add(new Series("Population") { ChartType = SeriesChartType.Line, BorderWidth = 3 });
             chart.Series.Add(new Series("Budget") { ChartType = SeriesChartType.Line, YAxisType = AxisType.Secondary, BorderWidth = 2 });
 
-            btnRefresh = new Button { Text = "Refresh", Dock = DockStyle.Top, Height = 36 };
+            var top = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 44,
+                Padding = new Padding(8),
+                FlowDirection = FlowDirection.LeftToRight,
+                BackColor = Color.WhiteSmoke
+            };
+
+            btnRefresh = new Button { Text = "Refresh", Width = 90, Height = 28 };
             btnRefresh.Click += (s, e) => LoadChartData();
 
+            btnHistory = new Button { Text = "History", Width = 90, Height = 28 };
+            btnHistory.Click += (s, e) =>
+            {
+                using (var hf = new HistoryForm())
+                {
+                    hf.ShowDialog(this);
+                }
+            };
+
+            top.Controls.Add(btnRefresh);
+            top.Controls.Add(btnHistory);
+
             Controls.Add(chart);
-            Controls.Add(btnRefresh);
+            Controls.Add(top);
         }
 
         protected override void OnLoad(EventArgs e)

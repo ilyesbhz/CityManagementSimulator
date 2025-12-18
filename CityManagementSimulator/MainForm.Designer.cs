@@ -28,6 +28,9 @@ namespace CityManagementSimulator
         private ComboBox comboTileSize;
         private Button btnShowChart;
         private Button btnMove;
+        private Button btnPopulation;
+        private Button btnBudget;
+        private Button btnEnergy;
 
         // Dashboard labels
         private Label lblDay;
@@ -169,10 +172,9 @@ namespace CityManagementSimulator
                 Margin = Padding.Empty
             };
 
-            // IMPORTANT: add toolbox first, then title so title docks above the buttons.
             leftPanel.SuspendLayout();
-            leftPanel.Controls.Add(toolbox); // added first => goes below
-            leftPanel.Controls.Add(title);   // added last  => stays at the very top
+            leftPanel.Controls.Add(toolbox);
+            leftPanel.Controls.Add(title);
             leftPanel.ResumeLayout();
 
             foreach (var d in definitions)
@@ -186,30 +188,55 @@ namespace CityManagementSimulator
                     BackColor = Color.White,
                     FlatStyle = FlatStyle.Flat,
                     Font = new Font("Segoe UI", 9),
-                    Margin = new Padding(4, 4, 4, 4)
+                    Margin = new Padding(4)
                 };
                 btn.FlatAppearance.BorderColor = Color.LightGray;
                 btn.Click += (s, e) =>
                 {
                     selectedTool = (string)((Button)s).Tag;
                     HighlightTool((Button)s);
+                    UpdateCursor();
                 };
                 toolbox.Controls.Add(btn);
             }
 
-            var btnPanel = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 140, Padding = new Padding(8) };
+            // Restore previous bottom FlowLayoutPanel layout for citizen buttons.
+            var btnPanel = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 140,
+                Padding = new Padding(8),
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false
+            };
             leftPanel.Controls.Add(btnPanel);
 
-            btnAddCitizen = new Button { Text = "Add Citizen", Width = 180, Height = 36 };
-            btnAddCitizen.Click += BtnAddCitizen_Click;
+            btnAddCitizen = new Button { Text = "Add Citizen", Width = 180, Height = 36, Margin = new Padding(4) };
+            btnAddCitizen.Click += (s, e) =>
+            {
+                // Ensure cursor in dialog textboxes is correct (IBeam) -> dialogs use default.
+                Cursor = Cursors.Default;
+                BtnAddCitizen_Click(s, e);
+                UpdateCursor();
+            };
             btnPanel.Controls.Add(btnAddCitizen);
 
-            btnAssignCitizen = new Button { Text = "Assign Citizen", Width = 180, Height = 36 };
-            btnAssignCitizen.Click += BtnAssignCitizen_Click;
+            btnAssignCitizen = new Button { Text = "Assign Citizen", Width = 180, Height = 36, Margin = new Padding(4) };
+            btnAssignCitizen.Click += (s, e) =>
+            {
+                Cursor = Cursors.Default;
+                BtnAssignCitizen_Click(s, e);
+                UpdateCursor();
+            };
             btnPanel.Controls.Add(btnAssignCitizen);
 
-            btnAssignAll = new Button { Text = "Assign All", Width = 180, Height = 36 };
-            btnAssignAll.Click += BtnAssignAll_Click;
+            btnAssignAll = new Button { Text = "Assign All", Width = 180, Height = 36, Margin = new Padding(4) };
+            btnAssignAll.Click += (s, e) =>
+            {
+                Cursor = Cursors.Default;
+                BtnAssignAll_Click(s, e);
+                UpdateCursor();
+            };
             btnPanel.Controls.Add(btnAssignAll);
 
             topPanel = new Panel { Dock = DockStyle.Top, Height = 48, BackColor = Color.WhiteSmoke };
@@ -219,7 +246,7 @@ namespace CityManagementSimulator
             btnNextDay.Click += BtnNextDay_Click;
             topPanel.Controls.Add(btnNextDay);
 
-            comboTileSize = new ComboBox { Left = 130, Top = 10, Width = 80 };
+            comboTileSize = new ComboBox { Left = 130, Top = 10, Width = 80, DropDownStyle = ComboBoxStyle.DropDownList };
             comboTileSize.Items.AddRange(new object[] { "40", "60", "80", "100" });
             comboTileSize.SelectedItem = tileSize.ToString();
             comboTileSize.SelectedIndexChanged += (s, e) =>
@@ -229,12 +256,51 @@ namespace CityManagementSimulator
                     if (ts == tileSize) return;
                     int old = tileSize;
                     tileSize = ts;
-                    ApplyTileSizeChange(old); // preserve view correctly on UI zoom change
+                    ApplyTileSizeChange(old);
                 }
             };
             topPanel.Controls.Add(comboTileSize);
 
-            btnShowChart = new Button { Text = "Show Charts", Left = 220, Width = 110, Height = 30, Top = 8 };
+            // Population button placed just before Budget / Show Charts
+            btnPopulation = new Button { Text = "Population", Left = 220, Width = 110, Height = 30, Top = 8 };
+            btnPopulation.Click += (s, e) =>
+            {
+                using (var pf = new PopulationForm())
+                {
+                    pf.ShowDialog(this);
+                }
+                // After possible changes, refresh dashboard
+                RefreshDashboard();
+                RenderAllBuildings();
+                UpdateCursor();
+            };
+            topPanel.Controls.Add(btnPopulation);
+
+            btnBudget = new Button { Text = "Budget", Left = btnPopulation.Right + 8, Width = 90, Height = 30, Top = 8 };
+            btnBudget.Click += (s, e) =>
+            {
+                using (var bf = new BudgetForm())
+                {
+                    bf.ShowDialog(this);
+                }
+                RefreshDashboard();
+                UpdateCursor();
+            };
+            topPanel.Controls.Add(btnBudget);
+
+            btnEnergy = new Button { Text = "Energy", Left = btnBudget.Right + 8, Width = 90, Height = 30, Top = 8 };
+            btnEnergy.Click += (s, e) =>
+            {
+                using (var ef = new EnergyForm())
+                {
+                    ef.ShowDialog(this);
+                }
+                RefreshDashboard();
+                UpdateCursor();
+            };
+            topPanel.Controls.Add(btnEnergy);
+
+            btnShowChart = new Button { Text = "Show Charts", Left = btnEnergy.Right + 8, Width = 110, Height = 30, Top = 8 };
             btnShowChart.Click += BtnShowChart_Click;
             topPanel.Controls.Add(btnShowChart);
 
@@ -247,7 +313,6 @@ namespace CityManagementSimulator
                 {
                     selectedTool = null;
                     btnMove.BackColor = Color.White;
-                    mapPanel.Cursor = Cursors.Default;
                     foreach (Control c in toolbox.Controls)
                         if (c is Button b) b.BackColor = Color.White;
                 }
@@ -256,12 +321,13 @@ namespace CityManagementSimulator
                     selectedTool = "Move";
                     HighlightTool(btnMove);
                 }
+                UpdateCursor();
             };
 
-            mapContainer = new Panel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = Color.White, Padding = Padding.Empty };
+            mapContainer = new Panel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = Color.White };
             Controls.Add(mapContainer);
 
-            mapPanel = new Panel { BackColor = Color.White, Margin = Padding.Empty, Location = Point.Empty };
+            mapPanel = new Panel { BackColor = Color.White, Location = Point.Empty };
             typeof(Panel).InvokeMember(
                 "DoubleBuffered",
                 System.Reflection.BindingFlags.SetProperty |
@@ -269,11 +335,9 @@ namespace CityManagementSimulator
                 System.Reflection.BindingFlags.NonPublic,
                 null, mapPanel, new object[] { true });
 
-            // initial size + scroll area
             ResizeMapSurface(false, null);
             mapPanel.Paint += MapPanel_Paint;
             mapPanel.MouseClick += MapPanel_MouseClick;
-
             mapPanel.MouseDown += MapPanel_MouseDown;
             mapPanel.MouseMove += MapPanel_MouseMove;
             mapPanel.MouseUp += MapPanel_MouseUp;
@@ -282,11 +346,11 @@ namespace CityManagementSimulator
                 if (isPanning)
                 {
                     isPanning = false;
-                    mapPanel.Cursor = selectedTool == "Move" ? Cursors.Hand : Cursors.Default;
+                    UpdateCursor();
                 }
             };
             mapPanel.MouseWheel += MapPanel_MouseWheel;
-
+            mapPanel.MouseEnter += (s, e) => mapPanel.Focus();
             mapContainer.Controls.Add(mapPanel);
 
             rightPanel = new TableLayoutPanel { Dock = DockStyle.Right, Width = 360, ColumnCount = 1, RowCount = 3, BackColor = Color.White };
@@ -317,19 +381,19 @@ namespace CityManagementSimulator
             statsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             statsGroup.Controls.Add(statsTable);
 
-            lblDay = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right, TextAlign = ContentAlignment.MiddleRight };
-            lblBudget = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right, Font = new Font("Segoe UI", 10, FontStyle.Bold), TextAlign = ContentAlignment.MiddleRight };
-            lblPopulation = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right, TextAlign = ContentAlignment.MiddleRight };
-            lblPollution = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right, TextAlign = ContentAlignment.MiddleRight };
-            lblEnergy = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right, TextAlign = ContentAlignment.MiddleRight };
-            lblWater = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right, TextAlign = ContentAlignment.MiddleRight };
-            lblHappiness = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right, TextAlign = ContentAlignment.MiddleRight };
+            lblDay = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right };
+            lblBudget = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            lblPopulation = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right };
+            lblPollution = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right };
+            lblEnergy = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right };
+            lblWater = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right };
+            lblHappiness = new Label { Text = "0", AutoSize = true, Anchor = AnchorStyles.Right };
 
             void AddRow(string caption, Label value)
             {
                 int r = statsTable.RowCount;
                 statsTable.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                var nameLbl = new Label { Text = caption, AutoSize = true, Anchor = AnchorStyles.Left, TextAlign = ContentAlignment.MiddleLeft };
+                var nameLbl = new Label { Text = caption, AutoSize = true, Anchor = AnchorStyles.Left };
                 nameLbl.Margin = new Padding(0, 3, 0, 3);
                 value.Margin = new Padding(0, 3, 0, 3);
                 statsTable.Controls.Add(nameLbl, 0, r);
@@ -365,18 +429,29 @@ namespace CityManagementSimulator
             {
                 selectedTool = "Road";
                 HighlightTool((Button)s);
+                UpdateCursor();
             };
             toolbox.Controls.Add(btnRoad);
 
             mapPanel.TabStop = true;
-            mapPanel.MouseEnter += (s, e) => mapPanel.Focus();
         }
 
         private void HighlightTool(Button btn)
         {
-            foreach (Control c in toolbox.Controls) if (c is Button b) b.BackColor = Color.White;
-            btn.BackColor = Color.LightBlue;
-            mapPanel.Cursor = (selectedTool == "Move") ? Cursors.Hand : Cursors.Default;
+            foreach (Control c in toolbox.Controls)
+                if (c is Button b) b.BackColor = Color.White;
+            if (btn != null) btn.BackColor = Color.LightBlue;
+        }
+
+        private void UpdateCursor()
+        {
+            // Only change cursor on map surface; keep default/IBeam on input controls elsewhere.
+            if (selectedTool == "Move")
+                mapPanel.Cursor = Cursors.Hand;
+            else if (selectedTool != null && selectedTool != "Move")
+                mapPanel.Cursor = Cursors.Cross; // building placement / road drawing
+            else
+                mapPanel.Cursor = Cursors.Default;
         }
 
         private void BtnShowChart_Click(object sender, EventArgs e)
@@ -385,6 +460,7 @@ namespace CityManagementSimulator
             {
                 cf.ShowDialog(this);
             }
+            UpdateCursor();
         }
 
         private void LoadRoadImage()

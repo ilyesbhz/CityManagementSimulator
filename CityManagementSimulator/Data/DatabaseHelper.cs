@@ -15,7 +15,7 @@ namespace CityManagementSimulator.Data
         public DatabaseHelper()
         {
             _conn = ConfigurationManager.ConnectionStrings["CityDatabase"]?.ConnectionString
-                    ?? throw new InvalidOperationException("Connection string 'CityDB' not found.");
+                    ?? throw new InvalidOperationException("Connection string 'CityDatabase' not found.");
             EnsureDatabaseAndSchema();
         }
 
